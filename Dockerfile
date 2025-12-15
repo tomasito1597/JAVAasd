@@ -7,17 +7,23 @@ COPY . /app
 # 3. Nos movemos a la carpeta de trabajo
 WORKDIR /app
 
-# 4. Compilamos el proyecto (esto crea el archivo JAR en target/)
-RUN mvn clean package -DskipTests
+# 🟢 ¡LÍNEA A AÑADIR/MODIFICAR! Nos movemos a la carpeta del proyecto anidado
+WORKDIR /app/p2 
+# (Asumiendo que la carpeta que contiene src/ y pom.xml se llama 'p2')
+
+# 4. Compilamos el proyecto
+RUN mvn clean package -DskipTests 
+# Ahora Maven encontrará el pom.xml dentro de /app/p2
 
 # 5. Segunda etapa: Usamos una imagen más ligera para ejecutar el JAR
 FROM eclipse-temurin:17-jre-alpine
 
-# 6. Copiamos el JAR compilado de la etapa 'build'
-COPY --from=build /app/target/p2-0.0.1-SNAPSHOT.jar /app/app.jar
+# 6. Copiamos el JAR compilado
+# 🔴 ¡LÍNEA A MODIFICAR! El JAR ahora está en la subcarpeta p2/target
+COPY --from=build /app/p2/target/p2-0.0.1-SNAPSHOT.jar /app/app.jar
 
 # 7. Exponemos el puerto de Spring Boot
 EXPOSE 8080
 
-# 8. Comando de inicio (ejecuta el JAR)
+# 8. Comando de inicio
 CMD ["java", "-jar", "/app/app.jar"]
